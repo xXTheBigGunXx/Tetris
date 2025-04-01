@@ -134,7 +134,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="Tetris.cpp" />
+    <ClCompile Include="Board.cpp" />
+    <ClCompile Include="GameUtils.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TaskUtils.cpp" />
+    <ClCompile Include="Tetrominos.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameUtils.h" />
+    <ClInclude Include="TaskUtils.h" />
+    <ClInclude Include="Tetrominos.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

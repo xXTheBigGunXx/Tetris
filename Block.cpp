@@ -1,22 +1,26 @@
 class Block
 {
 public:
-	bool** matrix;
+	char** matrix;
 	size_t size;
+
+	int xBlockOffset{};
+	int yBlockOffset;
 
 	Block(size_t blocks_size)
 	{
 		size = blocks_size;
-		matrix = new bool*[size];
+		matrix = new char*[size];
 
 		for (size_t i = 0; i < size; i++) {
-			matrix[i] = new bool[size];
+			matrix[i] = new char[size];
 			for (size_t j = 0; j < size; j++) {
-				matrix[i][j] = false;
+				matrix[i][j] = ' ';
 			}
 		}
+		yBlockOffset = (size-1) * 42;
 	}
-	~Block()
+	virtual ~Block()
 	{
 		for (size_t i = 0; i < size; i++) {
 			delete[] matrix[i];
@@ -25,7 +29,7 @@ public:
 		matrix = nullptr;
 	}
 
-	void RotateLeft() {
+	void virtual RotateLeft() {
 		Block temp(this->size);
 
 		for (size_t i = 0; i < size; i++) {
@@ -37,23 +41,95 @@ public:
 		Copy(temp.matrix, size);
 	}
 
-	void RotateRight() {
+	void virtual RotateRight() {
 		Block temp(this->size);
 
 		for (size_t i = 0; i < size; i++) {
 			for (size_t j = 0; j < size; j++) {
-				temp.matrix[j][i] = this->matrix[i][j];
+				temp.matrix[j][size - 1 - i] = this->matrix[i][j];
 			}
 		}
 
 		Copy(temp.matrix, size);
 	}
 
-	void Copy(bool** matrix, size_t size) {
+	void Copy(char** matrix, size_t size) {
 		for (size_t i = 0; i < size; i++) {
 			for (size_t j = 0; j < size; j++) {
 				this->matrix[i][j] = matrix[i][j];
 			}
 		}
+	}
+
+	int TrueSizeUpY()
+	{
+		int index{};
+
+		for (int i = size - 1; i >= 0; i--) {
+			bool flag = false;
+			for (size_t j = 0; j < size; j++) {
+				if (matrix[i][j] != ' ')
+					flag = true;
+			}
+
+			if (flag) {
+				index = i;
+			}
+		}
+		return index;
+	}
+
+	int TrueSizeDownY()
+	{
+		int index{};
+
+		for (int i = 0; i < size; i++) {
+			bool flag = false;
+			for (size_t j = 0; j < size; j++) {
+				if (matrix[i][j] != ' ')
+					flag = true;
+			}
+
+			if (flag) {
+				index = i;
+			}
+		}
+		return index;
+	}
+
+	int TrueSizeLeftX() {
+		int index{};
+
+		for (int i = size - 1; i >= 0; i--) {
+			bool flag = false;
+			for (size_t j = 0; j < size; j++) {
+				if (matrix[j][i] != ' ')
+					flag = true;
+			}
+
+			if (flag) {
+				index = i;
+			}
+		}
+		return index;
+	}
+
+	int TrueSizeRightX() {
+		int index{};
+
+		for (int i = 0; i < size; i++) {
+			bool flag = false;
+			for (size_t j = 0; j < size; j++) {
+				if (matrix[j][i] != ' ') {
+					flag = true;
+					break;
+				}
+			}
+
+			if (flag) {
+				index = i;
+			}
+		}
+		return index;
 	}
 };
