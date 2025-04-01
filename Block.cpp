@@ -4,8 +4,8 @@ public:
 	char** matrix;
 	size_t size;
 
-	int xBlockOffset{};
-	int yBlockOffset;
+	float xBlockOffset = 84.0f;
+	float yBlockOffset;
 
 	Block(size_t blocks_size)
 	{
@@ -18,7 +18,8 @@ public:
 				matrix[i][j] = ' ';
 			}
 		}
-		yBlockOffset = (size-1) * 42;
+		xBlockOffset = 84.0f;
+		yBlockOffset = (size-1) * -42;
 	}
 	virtual ~Block()
 	{

@@ -4,7 +4,7 @@
 class I : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = static_cast<float>(Block::xBlockOffset);
     I() : Block(4)
     {
         matrix[1][0] = 'I';
@@ -24,7 +24,7 @@ public:
 class J : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     J() : Block(3)
     {
         matrix[1][0] = 'J';
@@ -37,7 +37,7 @@ public:
 class L : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     L() : Block(3)
     {
         matrix[1][0] = 'L';
@@ -50,7 +50,7 @@ public:
 class O : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     O() : Block(2)
     {
         matrix[0][0] = 'O';
@@ -66,7 +66,7 @@ public:
 class S : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     S() : Block(3)
     {
         matrix[0][1] = 'S';
@@ -79,7 +79,7 @@ public:
 class T : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     T() : Block(3)
     {
         matrix[0][1] = 'T';
@@ -92,7 +92,7 @@ public:
 class Z : public Block
 {
 public:
-    int xBlockOffset = Block::xBlockOffset;
+    //float xBlockOffset = Block::xBlockOffset;
     Z() : Block(3)
     {
         matrix[0][0] = 'Z';
