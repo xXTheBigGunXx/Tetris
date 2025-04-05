@@ -11,14 +11,14 @@ public:
 	const int height = 900;
 
 	const int FPS = 60;
-	const int speed = 4;
+	const int speed = 6;
 
 	float multiplier = 1;
 	float xDirection{};
 
 	int frameCount{};
 
-	const Board* board;
+	Board* board;
 
 	std::unique_ptr<Block> currentTetromino;
 	std::unique_ptr<Block> nextTetromino;
@@ -35,6 +35,8 @@ public:
 	void InsertIntoMatrix();
 	void MoveTetromino();
 	bool CanGoLeftOrRight();
+	void RemoveLines();
+	bool CantRotate();
 };
 
 #endif

@@ -99,7 +99,7 @@ public:
 		return index;
 	}
 
-	int TrueSizeLeftX() {
+	virtual int TrueSizeLeftX() {
 		int index{};
 
 		for (int i = size - 1; i >= 0; i--) {
@@ -116,7 +116,7 @@ public:
 		return index;
 	}
 
-	int TrueSizeRightX() {
+	virtual int TrueSizeRightX() {
 		int index{};
 
 		for (int i = 0; i < size; i++) {

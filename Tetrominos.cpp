@@ -13,6 +13,17 @@ public:
         matrix[1][3] = 'I';
     }
 
+    int TrueSizeLeftX() override {
+        if (matrix[0][1] == 'I' || matrix[0][2] == 'I') {
+            return size - TrueSizeRightX() + 1;
+        }
+        return size - TrueSizeRightX();
+    }
+
+    int TrueSizeRightX() override {
+        return Block::TrueSizeRightX() + 1;
+    }
+
     void RotateRight() override
     {
         RotateLeft();
@@ -105,9 +116,9 @@ public:
 std::unique_ptr<Block> ReturnObj()
 {
     const char letters[] = { 'I', 'O', 'L', 'J', 'S', 'Z', 'T' };
-    char i = 'T';
-    switch (letters[TaskUtils::RandomInt(7)])
-    //switch(i)
+    char i = 'I';
+    //switch (letters[TaskUtils::RandomInt(7)])
+    switch(i)
     {
     case 'I': return std::make_unique<I>();
     case 'J': return std::make_unique<J>();

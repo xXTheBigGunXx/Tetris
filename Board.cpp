@@ -1,5 +1,6 @@
 #include <unordered_map>
 #include "raylib.h"
+#include <vector>
 
 class Board
 {
@@ -20,25 +21,19 @@ public:
 	{' ', Color{27, 31, 42, 150}},
 	};
 
-	char** matrix;
+	std::vector<std::vector<char>> matrix;
 
 	int xOffset, yOffset;
 
 	Board(int x, int y): xOffset(x), yOffset(y)
 	{
-		matrix = new char* [height];
+		matrix.reserve(height);
+
 		for (size_t i = 0; i < height; i++) {
-			matrix[i] = new char[width];
+			std::vector<char> temp(width);
+			matrix.push_back(temp);
 			for (size_t j = 0; j < width; j++)
 				matrix[i][j] = ' ';
 		}
-	}
-
-	~Board()
-	{
-		for (size_t i = 0; i < height; i++)
-			delete[] matrix[i];
-		delete[] matrix;
-		matrix = nullptr;
 	}
 };
