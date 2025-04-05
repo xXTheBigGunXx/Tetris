@@ -1,15 +1,18 @@
+#include <iostream>
+
 class Block
 {
 public:
 	char** matrix;
 	size_t size;
 
-	float xBlockOffset = 84.0f;
+	float xBlockOffset;
 	float yBlockOffset;
 
-	Block(size_t blocks_size)
+	Block() = delete;
+
+	Block(size_t blocks_size): xBlockOffset(84.0f), yBlockOffset(((int)size - 1) * -42.0f), size(blocks_size)
 	{
-		size = blocks_size;
 		matrix = new char*[size];
 
 		for (size_t i = 0; i < size; i++) {
@@ -18,8 +21,6 @@ public:
 				matrix[i][j] = ' ';
 			}
 		}
-		xBlockOffset = 84.0f;
-		yBlockOffset = (size-1) * -42;
 	}
 	virtual ~Block()
 	{

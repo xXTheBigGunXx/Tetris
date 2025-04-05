@@ -13,6 +13,9 @@ public:
 	const int FPS = 60;
 	const int speed = 4;
 
+	float multiplier = 1;
+	float xDirection{};
+
 	int frameCount{};
 
 	const Board* board;
@@ -26,13 +29,12 @@ public:
 	void DrawMatrix();
 	void DisplayNextTetromino();
 	void Replace();
-	void MoveDown();
+	bool MoveDown();
 	void DisplayTetromino();
-	bool Stop();
+	bool HitEndOrOtherBLock();
 	void InsertIntoMatrix();
 	void MoveTetromino();
-	bool TouchOtherBlocks(int x, int y);
-	bool OutOfBounds();
+	bool CanGoLeftOrRight();
 };
 
 #endif

@@ -2,6 +2,8 @@
 #include "raylib.h"
 #include "TaskUtils.h"
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 GameUtils::GameUtils()
 {
@@ -13,7 +15,7 @@ GameUtils::GameUtils()
 	currentTetromino = ReturnObj();
 	nextTetromino = ReturnObj();
 
-	currentTetromino->xBlockOffset;
+	std::cout << currentTetromino->yBlockOffset << std::endl;
 
 	//std::cout << std::boolalpha;
 }
@@ -32,22 +34,26 @@ void GameUtils::RunGame()
 
 		TaskUtils::Direction();
 
+		//std::cout << currentTetromino->yBlockOffset << '\n';
+
 		DrawMatrix();
-		
-		if (frameCount == FPS / speed){
+
+		if (frameCount == FPS / speed / 3)
+			xDirection = 0.0f;
+
+		if (frameCount == FPS / speed) {
+			TaskUtils::Direction();
 
 			//std::cout << TaskUtils::xDir << ' ' << TaskUtils::rotate << ' ' << TaskUtils::oneDown << ' ' << TaskUtils::goDown << '\n';
-			//MoveTetromino();
+		//	std::cout << currentTetromino->TrueSizeLeftX() << ' ' << currentTetromino->TrueSizeRightX() << '|' << currentTetromino->TrueSizeUpY() << ' ' << currentTetromino->TrueSizeDownY() << '\n';
+			MoveTetromino();
 
-			MoveDown();
 			frameCount = 0;
 			TaskUtils::Reset();
 		}
-
+		//DisplayTetromino();
 		MoveDown();
 
-		currentTetromino->yBlockOffset;
-		
 		DisplayNextTetromino();
 		DisplayTetromino();
 		EndDrawing();
@@ -96,67 +102,62 @@ void GameUtils::Replace()
 	nextTetromino = ReturnObj();
 }
 
-void GameUtils::MoveDown()
+bool GameUtils::MoveDown()
 {
-	currentTetromino->yBlockOffset -= static_cast<float>(board->cubeWidth * GetFrameTime() * speed * 2);
+	currentTetromino->yBlockOffset += static_cast<float>(board->cubeWidth * GetFrameTime() * speed * multiplier * 2);
+	currentTetromino->xBlockOffset += xDirection * static_cast<float>(board->cubeWidth * GetFrameTime() * speed * multiplier * 3);
 
-	if (Stop()) {
+	if (HitEndOrOtherBLock()) {
 		InsertIntoMatrix();
 		Replace();
+		return false;
 	}
+	return true;
 }
 
 void GameUtils::DisplayTetromino()
 {
 	for (size_t i = 0; i < currentTetromino->size; i++) {
 		for (size_t j = 0; j < currentTetromino->size; j++) {
-			if (currentTetromino->matrix[i][j] != ' ' && (i * board->cubeWidth) - currentTetromino->yBlockOffset + board->yOffset > 0) {
+			if (currentTetromino->matrix[i][j] != ' ' && (i * board->cubeWidth) + currentTetromino->yBlockOffset + board->yOffset > 0) {
 				Rectangle rect = {
 					(j * board->cubeWidth) + board->xOffset + currentTetromino->xBlockOffset,
-					(i * board->cubeWidth) + board->yOffset - currentTetromino->yBlockOffset,
+					(i * board->cubeWidth) + board->yOffset + currentTetromino->yBlockOffset,
 					board->cubeWidth,
 					board->cubeWidth
 				};
-				DrawRectangle(static_cast<float>((j * board->cubeWidth) + board->xOffset) + currentTetromino->xBlockOffset, static_cast<float>((i * board->cubeWidth) + board->yOffset) + -currentTetromino->yBlockOffset, board->cubeWidth, board->cubeWidth, board->colors.at(currentTetromino->matrix[i][j]));
+				DrawRectangle(static_cast<float>((j * board->cubeWidth) + board->xOffset) + currentTetromino->xBlockOffset, static_cast<float>((i * board->cubeWidth) + board->yOffset) + currentTetromino->yBlockOffset, board->cubeWidth, board->cubeWidth, board->colors.at(currentTetromino->matrix[i][j]));
 				DrawRectangleLinesEx(rect, 1.5f, Color{ 26, 32, 43 , 100 });
 			}
 		}
 	}
 }
 
-bool GameUtils::Stop()
+bool GameUtils::HitEndOrOtherBLock()
 {
-	std::cout << static_cast<float>(((currentTetromino->TrueSizeDownY() + 1) * board->cubeWidth) + board->yOffset) + (-currentTetromino->yBlockOffset) << " and " << static_cast<float>(height - board->yOffset) << '\n';
-	if (static_cast<float>(((currentTetromino->TrueSizeDownY() + 1) * board->cubeWidth) + board->yOffset) + (-currentTetromino->yBlockOffset) > static_cast<float>(height - board->yOffset))
+	if (static_cast<float>(((currentTetromino->TrueSizeDownY() + 1) * board->cubeWidth) + board->yOffset) + currentTetromino->yBlockOffset > static_cast<float>(height - board->yOffset))
 	{
-		std::cout << currentTetromino->TrueSizeUpY() << ", " << currentTetromino->TrueSizeDownY() << std::endl;
+		//std::cout << "Hit other tetromino or the end" << currentTetromino->TrueSizeUpY() << ", " << currentTetromino->TrueSizeDownY() << std::endl;
 		return true;
 	}
-	return false;
 
-	/*int y = (-currentTetromino->yBlockOffset - (currentTetromino->TrueSizeDownY() * board->cubeWidth)) / board->cubeWidth;
-	int x = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeLeftX() * board->cubeWidth)) / board->cubeWidth;
-	y++;
+	int i = static_cast<int>(static_cast<float>(board->yOffset) + currentTetromino->yBlockOffset) / board->cubeWidth;
+	int j = static_cast<int>(static_cast<float>(board->xOffset) + currentTetromino->xBlockOffset) / board->cubeWidth;
+	i++;
 
-	for (size_t i = 0; i < currentTetromino->size; i++) {
-		if (i + x < 0 || i + x >= board->height)
-			continue;
-		for (size_t j = 0; j < currentTetromino->size; j++) {
-			if (j + y < 0 || j + y >= board->width)
-				continue;
-			else if (board->matrix[i + x][j + y] != ' ' && currentTetromino->matrix[i][j] != ' ')
+	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
+		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
+			if (board->matrix[i + k][j + t] != ' ' && currentTetromino->matrix[k][t] != ' ')
 				return true;
 		}
 	}
-	return false;*/
+	return false;
 }
 
 void GameUtils::InsertIntoMatrix()
 {
-	int i = (-currentTetromino->yBlockOffset - (currentTetromino->TrueSizeDownY() * board->cubeWidth)) / board->cubeWidth;
-	int j = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeLeftX() * board->cubeWidth)) / board->cubeWidth;
-
-	//std::cout << i << ' ' << j << '\n';
+	int i = static_cast<int>(static_cast<float>(board->yOffset) + currentTetromino->yBlockOffset) / board->cubeWidth;
+	int j = static_cast<int>(static_cast<float>(board->xOffset) + currentTetromino->xBlockOffset) / board->cubeWidth;
 
 	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
 		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
@@ -168,74 +169,60 @@ void GameUtils::InsertIntoMatrix()
 
 void GameUtils::MoveTetromino()
 {
-	if (TaskUtils::xDir != 0) {
-		bool flag = false;
-		int j{};
-		int offset{};
+	multiplier = TaskUtils::oneDown ? 1.5f : 1.0f;
+	xDirection = TaskUtils::xDir;
 
-		if (TaskUtils::xDir == -1) {
-			j = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeLeftX() * board->cubeWidth)) / board->cubeWidth;
-			offset = -1;
-			if (j - 1 >= 0) {
-				flag = true;
-			}
-		}
-		else if(TaskUtils::xDir == 1){
-			j = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeRightX() * board->cubeWidth)) / board->cubeWidth;
-			offset = 1;
-			if (j + 1 < board->width) {
-				flag = true;
-			}
-		}
+	if (CanGoLeftOrRight()) {
+		/*std::this_thread::sleep_for(std::chrono::milliseconds(150));
+		TaskUtils::Direction();
+		float currDir = xDirection;
 
-		if (flag)
-			currentTetromino->xBlockOffset += (offset * board->cubeWidth);
-	}
-	else if (TaskUtils::oneDown) {
-		int i = (-currentTetromino->yBlockOffset - (currentTetromino->TrueSizeDownY() * board->cubeWidth)) / board->cubeWidth;
-		int j = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeLeftX() * board->cubeWidth)) / board->cubeWidth;
-
-		/*if (!TouchOtherBlocks(j, i)) {
-			currentTetromino->yBlockOffset -= board->cubeWidth;
+		while (TaskUtils::xDir == currDir && CanGoLeftOrRight()) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(75));
+			xDirection += TaskUtils::xDir;
+			TaskUtils::Direction();
 		}*/
-		MoveDown();
 	}
-	else if (TaskUtils::rotate) {
+	else {
+		xDirection = 0.0f;
+	}
+	if (TaskUtils::goDown) {
+		while (MoveDown() != false) {}
+	}
+	if (TaskUtils::rotate) {
+
 		currentTetromino->RotateRight();
 
-		if (OutOfBounds()) {
+		if (HitEndOrOtherBLock()) {
 			currentTetromino->RotateLeft();
 		}
 	}
 }
 
-bool GameUtils::TouchOtherBlocks(int x, int y)
+bool GameUtils::CanGoLeftOrRight()
 {
-	for (size_t i = 0; i < currentTetromino->size; i++) {
-		if (i + x < 0 || i + x >= board->height)
-			continue;
-		for (size_t j = 0; j < currentTetromino->size; j++) {
-			if (j + y < 0 || j + y >= board->width)
-				continue;
-			else if (board->matrix[i + x][j + y] != ' ' && currentTetromino->matrix[i][j] != ' ')
-				return true;
-			}
-	}
-	return false;
-}
+	int i = static_cast<int>(static_cast<float>(board->xOffset) + currentTetromino->xBlockOffset) / board->cubeWidth;
 
-bool GameUtils::OutOfBounds()
-{
-	int y1 = (-currentTetromino->yBlockOffset - (currentTetromino->TrueSizeUpY() * board->cubeWidth)) / board->cubeWidth;
-	int y2 = (-currentTetromino->yBlockOffset - (currentTetromino->TrueSizeDownY() * board->cubeWidth)) / board->cubeWidth;
-	int x1 = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeLeftX() * board->cubeWidth)) / board->cubeWidth;
-	int x2 = (currentTetromino->xBlockOffset + (currentTetromino->TrueSizeRightX() * board->cubeWidth)) / board->cubeWidth;
+	int leftIndex = i + currentTetromino->TrueSizeLeftX();
+	int rightIndex = i + currentTetromino->TrueSizeRightX();
 
-	if (x1 < 0 || x2 >= board->width) {
-		return true;
+	std::cout << "Indexs: " << leftIndex << ", " << rightIndex << '|' << xDirection << '\n';
+
+	if (xDirection == -1)
+		if (leftIndex <= 0) return false;
+	if (xDirection == 1)
+		if (rightIndex >= board->width - 1) return false;
+
+	i = static_cast<int>(static_cast<float>(board->yOffset) + currentTetromino->yBlockOffset) / board->cubeWidth;
+	int j = static_cast<int>(static_cast<float>(board->xOffset) + currentTetromino->xBlockOffset) / board->cubeWidth;
+	j += xDirection;
+
+	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
+		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
+			if (board->matrix[i + k][j + t] != ' ' && currentTetromino->matrix[k][t] != ' ')
+				return false;
+		}
 	}
-	else if (y1 < 0 || y2 >= board->height) {
-		return true;
-	}
-	return false;
+
+	return true;
 }

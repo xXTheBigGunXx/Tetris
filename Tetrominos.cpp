@@ -105,7 +105,9 @@ public:
 std::unique_ptr<Block> ReturnObj()
 {
     const char letters[] = { 'I', 'O', 'L', 'J', 'S', 'Z', 'T' };
+    char i = 'T';
     switch (letters[TaskUtils::RandomInt(7)])
+    //switch(i)
     {
     case 'I': return std::make_unique<I>();
     case 'J': return std::make_unique<J>();
@@ -114,6 +116,7 @@ std::unique_ptr<Block> ReturnObj()
     case 'S': return std::make_unique<S>();
     case 'Z': return std::make_unique<Z>();
     case 'T': return std::make_unique<T>();
-    default: return nullptr;
+    default: std::cout << "Returning nullptr\n";
+        return nullptr;
     }
 }
