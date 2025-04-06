@@ -6,6 +6,7 @@
 #include <chrono>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 GameUtils::GameUtils()
 {
@@ -16,10 +17,6 @@ GameUtils::GameUtils()
 
 	currentTetromino = ReturnObj();
 	nextTetromino = ReturnObj();
-
-	std::cout << currentTetromino->yBlockOffset << std::endl;
-
-	//std::cout << std::boolalpha;
 }
 
 GameUtils::~GameUtils()
@@ -34,16 +31,17 @@ void GameUtils::RunGame()
 		BeginDrawing();
 		ClearBackground(Color{ 59, 85, 162 , 255 });
 
+		TaskUtils::Direction();
+
 		if (frameCount < FPS / speed / 2) {
 			TaskUtils::rotate = false;
+		}
+		if (frameCount < FPS / speed) {
 			TaskUtils::goDown = false;
 		}
 
-		TaskUtils::Direction();
-
 		if (frameCount == FPS / speed) {
 			frameCount = 0;
-			TaskUtils::Direction();
 
 			MoveTetromino();
 			TaskUtils::Reset();
@@ -142,8 +140,8 @@ void GameUtils::DisplayTetromino()
 		for (size_t j = 0; j < currentTetromino->size; j++) {
 			if (currentTetromino->matrix[i][j] != ' ') {
 				Rectangle rect = {
-					(j * board->cubeWidth) + board->xOffset + currentTetromino->xBlockOffset,
-					(i * board->cubeWidth) + board->yOffset + currentTetromino->yBlockOffset,
+					std::round((j * board->cubeWidth) + board->xOffset + currentTetromino->xBlockOffset),
+					std::round((i * board->cubeWidth) + board->yOffset + currentTetromino->yBlockOffset),
 					board->cubeWidth,
 					board->cubeWidth
 				};
@@ -156,32 +154,33 @@ void GameUtils::DisplayTetromino()
 
 bool GameUtils::HitEndOrOtherBLock()
 {
-	if (static_cast<float>(((currentTetromino->TrueSizeDownY() + 1) * board->cubeWidth)) + currentTetromino->yBlockOffset >= static_cast<float>(height - board->yOffset))
+	if (static_cast<float>(((currentTetromino->TrueSizeDownY()+1) * board->cubeWidth)) + currentTetromino->yBlockOffset > static_cast<float>(height - board->yOffset))
 	{
 		return true;
 	}
 
-	int i = static_cast<int>(currentTetromino->yBlockOffset) / board->cubeWidth;
-	int j = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
+	int i = std::round(static_cast<float>(currentTetromino->yBlockOffset) / board->cubeWidth);
+	int j = std::round(static_cast<float>(currentTetromino->xBlockOffset) / board->cubeWidth);
 
 	i++;
 
-	/*for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
-		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
+	for (size_t k = 0; k < currentTetromino->size && (i+k) < board->height; k++) {
+		for (size_t t = currentTetromino->TrueSizeLeftX(); t < currentTetromino->size && (j + t) < board->width; t++) {
 			if (board->matrix[i + k][j + t] != ' ' && currentTetromino->matrix[k][t] != ' ')
 				return true;
 		}
-	}*/
+	}
 	return false;
 }
 
 void GameUtils::InsertIntoMatrix()
 {
-	int i = static_cast<int>(currentTetromino->yBlockOffset) / board->cubeWidth;
-	int j = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
+	int i = std::round(static_cast<float>(currentTetromino->yBlockOffset) / board->cubeWidth);
+	int j = std::round(static_cast<float>(currentTetromino->xBlockOffset) / board->cubeWidth);
 
-	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
-		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
+
+	for (size_t k = 0; k < currentTetromino->size; k++) {
+		for (size_t t = currentTetromino->TrueSizeLeftX(); t < currentTetromino->size; t++) {
 			if(currentTetromino->matrix[k][t] != ' ')
 				board->matrix[i + k][j + t] = currentTetromino->matrix[k][t];
 		}
@@ -190,7 +189,8 @@ void GameUtils::InsertIntoMatrix()
 
 void GameUtils::MoveTetromino()
 {
-	multiplier = TaskUtils::oneDown ? 1.75f : 1.0f;
+	std::cout << std::round(static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth) << '|' << currentTetromino->TrueSizeLeftX() << '|' << currentTetromino->TrueSizeRightX() << '\n';
+	multiplier = TaskUtils::oneDown ? 1.5f : 1.0f;
 	xDirection = TaskUtils::xDir;
 
 	if (!CanGoLeftOrRight()) {
@@ -208,7 +208,7 @@ void GameUtils::MoveTetromino()
 
 bool GameUtils::CanGoLeftOrRight()
 {
-	int i = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
+	int i = std::round(static_cast<float>(currentTetromino->xBlockOffset) / board->cubeWidth);
 
 	int leftIndex = i + currentTetromino->TrueSizeLeftX();
 	int rightIndex = i + currentTetromino->TrueSizeRightX();
@@ -220,8 +220,8 @@ bool GameUtils::CanGoLeftOrRight()
 	if (xDirection == 0)
 		return false;
 
-	i = static_cast<int>(currentTetromino->yBlockOffset) / board->cubeWidth;
-	int j = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
+	i = std::round(static_cast<float>(currentTetromino->yBlockOffset) / board->cubeWidth);
+	int j = std::round(static_cast<float>(currentTetromino->xBlockOffset) / board->cubeWidth);
 	j += xDirection;
 
 	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
@@ -239,24 +239,17 @@ bool GameUtils::CantRotate()
 	currentTetromino->RotateRight();
 
 	int i = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
+	int j = static_cast<int>(currentTetromino->yBlockOffset) / board->cubeWidth;
 
-	int leftIndex = i + currentTetromino->TrueSizeLeftX();
-	int rightIndex = i + currentTetromino->TrueSizeRightX();
-
-	std::cout << i << '|' << currentTetromino->TrueSizeRightX() << '\n';
-
-	if (leftIndex < 0) return true;
-	if (rightIndex > board->width - 1) return true;
-
-	i = static_cast<int>(currentTetromino->yBlockOffset) / board->cubeWidth;
-	int j = static_cast<int>(currentTetromino->xBlockOffset) / board->cubeWidth;
-
-	for (size_t k = 0; k < currentTetromino->size && (i + k) < board->height; k++) {
-		for (size_t t = 0; t < currentTetromino->size && (j + t) < board->width; t++) {
-			if (board->matrix[i + k][j + t] != ' ' && currentTetromino->matrix[k][t] != ' ')
+	for (size_t k = 0; k < currentTetromino->size; k++) {
+		for (size_t t = 0; t < currentTetromino->size; t++) {
+			int x = i + t;
+			int y = j + k;
+			if (x < 0 || x >= board->width || y < 0 || y >= board->height || (board->matrix[y][x] != ' ' && currentTetromino->matrix[k][t] != ' ')) {
+				currentTetromino->RotateLeft();
 				return true;
+			}
 		}
 	}
-
 	return false;
 }
